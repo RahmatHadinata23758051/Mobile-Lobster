@@ -200,7 +200,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                     ),
                     InkWell(
-                      onTap: () {},
+                      onTap: () => _showAllSensorsModal(context),
                       child: const Row(
                         children: [
                           Text('Lihat Semua', style: TextStyle(fontSize: 12, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
@@ -217,16 +217,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
                 _buildSensorGrid(),
                 const SizedBox(height: 20),
 
-                // Kontrol & Otomatisasi Pakan Card
-                const Text(
-                  'Kontrol & Otomatisasi Pakan',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
-                ),
-                const SizedBox(height: 12),
-                _buildHardwareControlCard(),
-                const SizedBox(height: 20),
-
-                // Daftar Perangkat IoT Node (Active Nodes)
+                // Ringkasan Sistem & Perangkat
                 const Text(
                   'Ringkasan Sistem & Perangkat',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
@@ -382,64 +373,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     );
   }
 
-  Widget _buildHardwareControlCard() {
-    final activeTelemetry = _dashboardData?['active_node_telemetry'] ?? {};
-    final defaultSerial = activeTelemetry['serial_number'] ?? 'DEMO-NODE-001';
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderCard),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Node Aktif: $defaultSerial',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 46,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.bolt, size: 18),
-              label: const Text('Buka Kontrol Pakan'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryGreen,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () async {
-                final auth = Provider.of<AuthProvider>(context, listen: false);
-                final res = await http.post(
-                  Uri.parse(ApiConstants.mobileFeedingInstantTrigger),
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ${auth.token}'
-                  },
-                  body: jsonEncode({
-                    'iot_node_serial_number': defaultSerial,
-                    'duration_seconds': 5,
-                  }),
-                );
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(res.statusCode == 200
-                          ? 'Perintah pakan manual berhasil dikirim ke Node $defaultSerial!'
-                          : 'Gagal mengirim perintah'),
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildDeviceListSection() {
     final List nodes = _dashboardData?['nodes'] ?? [
@@ -507,6 +441,148 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
           ),
         );
       },
+    );
+  }
+
+  void _showAllSensorsModal(BuildContext context) {
+    final activeTelemetry = _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
+    final temp = (activeTelemetry['temperature'] ?? 26.68).toDouble();
+    final ph = (activeTelemetry['ph'] ?? 7.30).toDouble();
+    final doVal = (activeTelemetry['dissolved_oxygen'] ?? 6.46).toDouble();
+    final tds = (activeTelemetry['tds'] ?? 426.15).toDouble();
+    final salinity = (activeTelemetry['salinity'] ?? 32.50).toDouble();
+    final turbidity = (activeTelemetry['turbidity'] ?? 12.40).toDouble();
+    final waterLevel = (activeTelemetry['water_level'] ?? 120.0).toDouble();
+    final orp = (activeTelemetry['orp'] ?? 310.0).toDouble();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.82,
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: AppTheme.lightBackground,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Modal Handle & Header
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.borderCard,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Detail Kualitas Air & Sensor',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                      ),
+                      Text(
+                        'Ringkasan 8 parameter indikator tambak lobster',
+                        style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: AppTheme.textMuted),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Full Sensor List Grid
+              Expanded(
+                child: ListView(
+                  children: [
+                    _sensorDetailTile('Suhu Air', '${temp.toStringAsFixed(2)} °C', 'Ideal: 25.0 - 30.0 °C', Icons.thermostat_outlined),
+                    _sensorDetailTile('pH Air', ph.toStringAsFixed(2), 'Ideal: 7.0 - 8.5', Icons.water_drop_outlined),
+                    _sensorDetailTile('Oksigen Terlarut (DO)', '${doVal.toStringAsFixed(2)} mg/L', 'Ideal: > 4.0 mg/L', Icons.air_outlined),
+                    _sensorDetailTile('TDS Air (Salinitas)', '${tds.toStringAsFixed(2)} ppm', 'Ideal: 300 - 600 ppm', Icons.grid_on_outlined),
+                    _sensorDetailTile('Salinitas Air', '${salinity.toStringAsFixed(2)} ppt', 'Ideal: 28.0 - 35.0 ppt', Icons.waves_outlined),
+                    _sensorDetailTile('Turbiditas / Kekeruhan', '${turbidity.toStringAsFixed(2)} NTU', 'Ideal: < 25.0 NTU', Icons.blur_on_outlined),
+                    _sensorDetailTile('Ketinggian Air', '${waterLevel.toStringAsFixed(0)} cm', 'Ideal: 100 - 150 cm', Icons.height_outlined),
+                    _sensorDetailTile('Potensial Redoks (ORP)', '${orp.toStringAsFixed(0)} mV', 'Ideal: 250 - 400 mV', Icons.bolt_outlined),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _sensorDetailTile(String label, String value, String idealRange, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.borderCard),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.badgeGreenBg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: AppTheme.primaryGreen, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark, fontSize: 14),
+                ),
+                Text(
+                  idealRange,
+                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+              ),
+              const SizedBox(height: 2),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.badgeGreenBg,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('Normal', style: TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
