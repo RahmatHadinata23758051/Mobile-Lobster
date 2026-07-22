@@ -116,74 +116,106 @@ class _MobileControlPageState extends State<MobileControlPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Pengaturan & Otomatisasi Pakan',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                'Pengaturan Pakan',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
               ),
-              const SizedBox(height: 4),
-              const Text(
-                'Kelola jadwal pemberian pakan otomatis dan trigger instan',
-                style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              // Form Tambah Jadwal Pakan
               if (_error != null)
                 Container(
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: AppTheme.dangerRed.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppTheme.badgeRedBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.dangerRed.withValues(alpha: 0.3)),
                   ),
-                  child: Text(_error!, style: const TextStyle(color: AppTheme.dangerRed, fontSize: 12)),
+                  child: Text(_error!, style: const TextStyle(color: AppTheme.dangerRed, fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
+
+              // Form Card (Reference Screen 2)
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppTheme.cardBg,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AppTheme.borderCard),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Tambah Jadwal Pakan Baru',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.accentGreen),
+                    const Row(
+                      children: [
+                        Icon(Icons.alarm, color: AppTheme.primaryGreen, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Tambah Jadwal Pakan Baru',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Kelola jadwal pemberian pakan otomatis',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Pilih Node Dropdown
+                    const Text('Pilih Node Aktif', style: TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedSerial,
                       dropdownColor: AppTheme.cardBg,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Pilih IoT Node'),
+                      style: const TextStyle(color: AppTheme.textDark, fontSize: 14),
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
                       items: const [
                         DropdownMenuItem(value: 'DEMO-NODE-001', child: Text('DEMO-NODE-001')),
                         DropdownMenuItem(value: 'LOBSTER-ESP32-001', child: Text('LOBSTER-ESP32-001')),
                         DropdownMenuItem(value: 'LOBSTER-ESP32-002', child: Text('LOBSTER-ESP32-002')),
-                        DropdownMenuItem(value: 'LOBSTER-ESP32-003', child: Text('LOBSTER-ESP32-003')),
                       ],
                       onChanged: (v) => setState(() => _selectedSerial = v!),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
+
+                    // Jenis Pakan Input
+                    const Text('Jenis Pakan', style: TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: _foodTypeController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Jenis Pakan'),
+                      style: const TextStyle(color: AppTheme.textDark, fontSize: 14),
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
+
+                    // Dosis Input
+                    const Text('Jumlah Dosis (Kg)', style: TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: _amountController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Jumlah Dosis (Kg)'),
+                      style: const TextStyle(color: AppTheme.textDark, fontSize: 14),
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
+
+                    // Submit Button
                     SizedBox(
                       width: double.infinity,
+                      height: 46,
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.add_alarm, size: 18),
+                        icon: const Icon(Icons.calendar_month_outlined, size: 18),
                         label: const Text('Simpan Jadwal Pakan'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryGreen,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
                         onPressed: _submitSchedule,
                       ),
                     ),
@@ -192,15 +224,25 @@ class _MobileControlPageState extends State<MobileControlPage> {
               ),
               const SizedBox(height: 24),
 
-              // Tabel Riwayat Log Pakan
-              const Text(
-                'Riwayat Log Pakan Terbaru',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              // Riwayat Log Pakan Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Riwayat Log Pakan Terbaru',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                  ),
+                  InkWell(
+                    onTap: () {},
+                    child: const Text('Lihat Semua', style: TextStyle(fontSize: 12, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
 
+              // Log Items List (Reference Screen 2)
               _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppTheme.accentCyan))
+                  ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen))
                   : _feedingLogs.isEmpty
                       ? const Text('Belum ada riwayat pakan', style: TextStyle(color: AppTheme.textMuted))
                       : ListView.separated(
@@ -211,18 +253,21 @@ class _MobileControlPageState extends State<MobileControlPage> {
                           itemBuilder: (context, idx) {
                             final log = _feedingLogs[idx];
                             return Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
                                 color: AppTheme.cardBg,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(14),
                                 border: Border.all(color: AppTheme.borderCard),
                               ),
                               child: Row(
                                 children: [
-                                  const CircleAvatar(
-                                    backgroundColor: AppTheme.primaryTeal,
-                                    radius: 18,
-                                    child: Icon(Icons.restaurant, size: 18, color: Colors.white),
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.badgeGreenBg,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(Icons.calendar_today_outlined, size: 18, color: AppTheme.primaryGreen),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -230,19 +275,27 @@ class _MobileControlPageState extends State<MobileControlPage> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          log['food_type'] ?? 'Pakan',
-                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                                          log['food_type'] ?? 'Pakan Pelet Super',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark, fontSize: 13),
                                         ),
+                                        const SizedBox(height: 2),
                                         Text(
-                                          'Dosis: ${log['amount_kg']} kg • ${log['iot_node']?['serial_number'] ?? _selectedSerial}',
+                                          '${log['amount_kg']} Kg • ${log['iot_node']?['serial_number'] ?? _selectedSerial}',
                                           style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Text(
-                                    log['fed_at'] != null ? log['fed_at'].toString().substring(11, 16) : '--:--',
-                                    style: const TextStyle(color: AppTheme.accentCyan, fontWeight: FontWeight.bold, fontSize: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        log['fed_at'] != null ? log['fed_at'].toString().substring(11, 16) : '08:30',
+                                        style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      const Icon(Icons.check_circle_outline, color: AppTheme.primaryGreen, size: 16),
+                                    ],
                                   ),
                                 ],
                               ),

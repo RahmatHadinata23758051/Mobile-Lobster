@@ -22,48 +22,49 @@ class MobileProfilePage extends StatelessWidget {
             children: [
               const Text(
                 'Profil & Akun Pengguna',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
               ),
               const SizedBox(height: 16),
 
-              // Avatar Card
+              // Avatar Card (Reference Screen 3)
               Container(
-                padding: const EdgeInsets.all(20),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                 decoration: BoxDecoration(
                   color: AppTheme.cardBg,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AppTheme.borderCard),
                 ),
                 child: Column(
                   children: [
                     CircleAvatar(
                       radius: 36,
-                      backgroundColor: AppTheme.primaryTeal,
+                      backgroundColor: AppTheme.primaryGreen,
                       child: Text(
-                        user?.name.substring(0, 1).toUpperCase() ?? 'U',
+                        user?.name.substring(0, 1).toUpperCase() ?? 'A',
                         style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      user?.name ?? 'Pengguna Lobsense',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      user?.name ?? 'Admin Lobsense',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      user?.email ?? 'email@lobsense.com',
+                      user?.email ?? 'admin@lobsense.com',
                       style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppTheme.accentGreen.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppTheme.primaryGreen,
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
-                        'ROLE: ${user?.role.toUpperCase() ?? "OPERATOR"}',
-                        style: const TextStyle(color: AppTheme.accentGreen, fontWeight: FontWeight.bold, fontSize: 11),
+                        'ROLE: ${user?.role.toUpperCase() ?? "ADMIN"}',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 0.5),
                       ),
                     ),
                   ],
@@ -71,33 +72,37 @@ class MobileProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Info Aplikasi Card
+              // Info Menu Group Card (Reference Screen 3)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppTheme.cardBg,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AppTheme.borderCard),
                 ),
                 child: const Column(
                   children: [
-                    InfoRow(Icons.system_update, 'Versi Aplikasi', 'v1.0.0 (MVP)'),
-                    Divider(color: AppTheme.borderCard),
-                    InfoRow(Icons.cloud_done, 'Backend Server', 'https://app.lobsens-unpad.web.id'),
-                    Divider(color: AppTheme.borderCard),
-                    InfoRow(Icons.sync, 'Status Sinkronisasi', '3-Way Realtime Active'),
+                    InfoRow(Icons.smartphone_outlined, 'Versi Aplikasi', 'v1.0.0 (MVP)'),
+                    Divider(color: AppTheme.borderCard, height: 24),
+                    InfoRow(Icons.dns_outlined, 'Backend Server', 'https://app.lobsens-unpad.web.id'),
+                    Divider(color: AppTheme.borderCard, height: 24),
+                    InfoRow(Icons.sync_outlined, 'Status Sinkronisasi', '3-Way Realtime Active'),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
 
-              // Logout Button
+              // Outlined Red Logout Button (Reference Screen 3)
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.logout, color: Colors.white),
-                  label: const Text('Keluar dari Akun (Logout)'),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.dangerRed),
+                height: 48,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.logout, color: AppTheme.dangerRed, size: 18),
+                  label: const Text('Keluar dari Akun (Logout)', style: TextStyle(color: AppTheme.dangerRed, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppTheme.dangerRed, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                   onPressed: () async {
                     final navigator = Navigator.of(context);
                     await auth.logout();
@@ -124,17 +129,16 @@ class InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: AppTheme.accentCyan),
-          const SizedBox(width: 12),
-          Text(label, style: const TextStyle(color: AppTheme.textMuted, fontSize: 13)),
-          const Spacer(),
-          Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-        ],
-      ),
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppTheme.primaryGreen),
+        const SizedBox(width: 12),
+        Text(label, style: const TextStyle(color: AppTheme.textDark, fontSize: 13, fontWeight: FontWeight.w500)),
+        const Spacer(),
+        Text(value, style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+        const SizedBox(width: 6),
+        const Icon(Icons.chevron_right, size: 16, color: AppTheme.textMuted),
+      ],
     );
   }
 }

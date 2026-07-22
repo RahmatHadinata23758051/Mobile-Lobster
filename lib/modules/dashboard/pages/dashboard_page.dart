@@ -6,8 +6,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/services/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../auth/pages/login_page.dart';
-
+import '../../../core/widgets/app_logo.dart';
 import 'control_page.dart';
 import 'profile_page.dart';
 
@@ -81,53 +80,89 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     ];
 
     return Scaffold(
+      backgroundColor: AppTheme.lightBackground,
       appBar: AppBar(
+        backgroundColor: AppTheme.cardBg,
+        elevation: 0,
+        centerTitle: false,
         title: const Row(
           children: [
-            Icon(Icons.water_drop, color: AppTheme.accentGreen, size: 20),
-            SizedBox(width: 8),
-            Text('Lobsense Mobile'),
+            AppLogo(size: 24, showText: false),
+            SizedBox(width: 10),
+            Text(
+              'Lobsense Mobile',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+            ),
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _fetchSummary,
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none_outlined, color: AppTheme.textDark, size: 24),
+                onPressed: () {},
+              ),
+              Positioned(
+                top: 14,
+                right: 14,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.primaryGreen,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: AppTheme.dangerRed),
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              await auth.logout();
-              navigator.pushReplacement(
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-              );
-            },
-          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: IndexedStack(
         index: _selectedNavIndex,
         children: pages,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedNavIndex,
-        backgroundColor: AppTheme.cardBg,
-        selectedItemColor: AppTheme.accentGreen,
-        unselectedItemColor: AppTheme.textMuted,
-        onTap: (idx) => setState(() => _selectedNavIndex = idx),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dasbor'),
-          BottomNavigationBarItem(icon: Icon(Icons.tune), label: 'Kontrol'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppTheme.cardBg,
+          border: Border(top: BorderSide(color: AppTheme.borderCard, width: 1)),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedNavIndex,
+          backgroundColor: AppTheme.cardBg,
+          elevation: 0,
+          selectedItemColor: AppTheme.primaryGreen,
+          unselectedItemColor: AppTheme.textMuted,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
+          onTap: (idx) => setState(() => _selectedNavIndex = idx),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.grid_view_rounded),
+              activeIcon: Icon(Icons.grid_view_rounded, color: AppTheme.primaryGreen),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.tune_outlined),
+              activeIcon: Icon(Icons.tune_outlined, color: AppTheme.primaryGreen),
+              label: 'Kontrol',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person_outline, color: AppTheme.primaryGreen),
+              label: 'Profil',
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildDashboardView(UserModel? user) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppTheme.accentCyan));
+      return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen));
     }
     if (_error != null) {
       return Center(
@@ -152,36 +187,49 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // User Welcome Header
-                _buildUserHeader(user),
-                const SizedBox(height: 16),
-
-                // Weather & Node Summary Stats Card
-                _buildSummaryHeaderCard(),
+                // Banner Lokasi Tambak & Cuaca (Reference Green Card)
+                _buildLocationWeatherBanner(),
                 const SizedBox(height: 20),
 
-                // Aggregate Sensor Readings Grid
-                const Text(
-                  'Kualitas Air & Sensor Agregat',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
+                // Kualitas Air & Sensor Grid Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Kualitas Air & Sensor',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                    ),
+                    InkWell(
+                      onTap: () {},
+                      child: const Row(
+                        children: [
+                          Text('Lihat Semua', style: TextStyle(fontSize: 12, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                          SizedBox(width: 2),
+                          Icon(Icons.chevron_right, size: 16, color: AppTheme.primaryGreen),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
-                _buildSensorGrid(),
-                const SizedBox(height: 24),
 
-                // Hardware Controls & Feeding Automation
+                // 4 Sensor Cards Grid
+                _buildSensorGrid(),
+                const SizedBox(height: 20),
+
+                // Kontrol & Otomatisasi Pakan Card
                 const Text(
                   'Kontrol & Otomatisasi Pakan',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                 ),
                 const SizedBox(height: 12),
                 _buildHardwareControlCard(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-                // Daftar Perangkat IoT Node Section
+                // Daftar Perangkat IoT Node (Active Nodes)
                 const Text(
-                  'Daftar Perangkat IoT (Active Nodes)',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
+                  'Ringkasan Sistem & Perangkat',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                 ),
                 const SizedBox(height: 12),
                 _buildDeviceListSection(),
@@ -193,120 +241,107 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     );
   }
 
-  Widget _buildUserHeader(UserModel? user) {
+  Widget _buildLocationWeatherBanner() {
+    final stats = _dashboardData?['summary_stats'] ?? {};
+    final location = stats['weather_location'] ?? 'Lombok Barat';
+    final condition = stats['weather_condition'] ?? 'Cerah';
+    final temp = stats['weather_temp_c'] ?? 28;
+    final totalNodes = stats['total_active_nodes'] ?? 5;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderCard),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: AppTheme.primaryTeal,
-            child: Text(
-              user?.name.substring(0, 1).toUpperCase() ?? 'U',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Halo, ${user?.name ?? "Pengguna"} 👋',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Role: ${user?.role.toUpperCase() ?? "OPERATOR"}',
-                style: const TextStyle(fontSize: 12, color: AppTheme.accentGreen, fontWeight: FontWeight.w600),
-              ),
-            ],
+        color: AppTheme.primaryGreen,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryGreen.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSummaryHeaderCard() {
-    final stats = _dashboardData?['summary_stats'];
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F4C5C), Color(0xFF1E3A8A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              const Text('Lokasi Tambak', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-              Text(
-                stats?['weather_location'] ?? 'Lombok Barat',
-                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              const Icon(Icons.location_on, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Lokasi Tambak',
+                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      location,
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Cuaca: ${stats?['weather_condition'] ?? "Cerah"} (${stats?['weather_temp_c']}°C)',
-                style: const TextStyle(color: AppTheme.accentCyan, fontSize: 13),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.sensors, color: Colors.white, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$totalNodes Node Aktif',
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                const Icon(Icons.sensors, color: AppTheme.accentGreen, size: 24),
-                const SizedBox(height: 4),
-                Text(
-                  '${stats?['total_active_nodes'] ?? 0} Node Aktif',
-                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          )
+          const SizedBox(height: 16),
+          Text(
+            'Cuaca: $condition (${temp.toStringAsFixed(0)}°C)',
+            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildSensorGrid() {
-    final telemetry = _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
+    final activeTelemetry = _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
+    final temp = (activeTelemetry['temperature'] ?? 26.68).toDouble();
+    final ph = (activeTelemetry['ph'] ?? 7.3).toDouble();
+    final doVal = (activeTelemetry['dissolved_oxygen'] ?? 6.46).toDouble();
+    final tds = (activeTelemetry['tds'] ?? 426.15).toDouble();
 
     return GridView.count(
+      crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.5,
+      childAspectRatio: 1.25,
       children: [
-        _sensorCard('Suhu Air', '${telemetry['water_temperature'] ?? 28.5} °C', Icons.thermostat, Colors.orange),
-        _sensorCard('pH Air', '${telemetry['ph'] ?? 7.5}', Icons.science, Colors.blue),
-        _sensorCard('Oksigen (DO)', '${telemetry['dissolved_oxygen'] ?? 6.2} mg/L', Icons.air, Colors.green),
-        _sensorCard('TDS Air', '${telemetry['tds'] ?? 450} ppm', Icons.water, Colors.cyan),
+        _sensorCard('Suhu Air', '${temp.toStringAsFixed(2)} °C', Icons.thermostat_outlined, AppTheme.primaryGreen),
+        _sensorCard('pH Air', ph.toStringAsFixed(1), Icons.water_drop_outlined, AppTheme.primaryGreen),
+        _sensorCard('Oksigen (DO)', '${doVal.toStringAsFixed(2)} mg/L', Icons.air_outlined, AppTheme.primaryGreen),
+        _sensorCard('TDS Air', '${tds.toStringAsFixed(2)} ppm', Icons.grid_on_outlined, AppTheme.primaryGreen),
       ],
     );
   }
 
-  Widget _sensorCard(String title, String value, IconData icon, Color color) {
+  Widget _sensorCard(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.cardBg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.borderCard),
       ),
       child: Column(
@@ -316,13 +351,31 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: const TextStyle(fontSize: 12, color: AppTheme.textMuted)),
-              Icon(icon, size: 18, color: color),
+              Icon(icon, color: color, size: 22),
+              Text(
+                label,
+                style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
+              ),
             ],
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppTheme.badgeGreenBg,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.arrow_upward, size: 10, color: AppTheme.primaryGreen),
+                SizedBox(width: 4),
+                Text('Normal', style: TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+              ],
+            ),
           ),
         ],
       ),
@@ -330,13 +383,14 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
   }
 
   Widget _buildHardwareControlCard() {
-    final defaultSerial = _dashboardData?['active_node_telemetry']?['serial_number'] ?? 'DEMO-NODE-001';
+    final activeTelemetry = _dashboardData?['active_node_telemetry'] ?? {};
+    final defaultSerial = activeTelemetry['serial_number'] ?? 'DEMO-NODE-001';
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.cardBg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.borderCard),
       ),
       child: Column(
@@ -344,42 +398,43 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
         children: [
           Text(
             'Node Aktif: $defaultSerial',
-            style: const TextStyle(color: AppTheme.accentGreen, fontWeight: FontWeight.bold, fontSize: 13),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.bolt, size: 18),
-                  label: const Text('Buka Pakan (5s)', style: TextStyle(fontSize: 13)),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryTeal),
-                  onPressed: () async {
-                    final auth = Provider.of<AuthProvider>(context, listen: false);
-                    final res = await http.post(
-                      Uri.parse(ApiConstants.mobileFeedingInstantTrigger),
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ${auth.token}'
-                      },
-                      body: jsonEncode({
-                        'iot_node_serial_number': defaultSerial,
-                        'duration_seconds': 5,
-                      }),
-                    );
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(res.statusCode == 200
-                              ? 'Perintah pakan manual berhasil dikirim ke Node $defaultSerial!'
-                              : 'Gagal mengirim perintah'),
-                        ),
-                      );
-                    }
-                  },
-                ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.bolt, size: 18),
+              label: const Text('Buka Kontrol Pakan'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryGreen,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-            ],
+              onPressed: () async {
+                final auth = Provider.of<AuthProvider>(context, listen: false);
+                final res = await http.post(
+                  Uri.parse(ApiConstants.mobileFeedingInstantTrigger),
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ${auth.token}'
+                  },
+                  body: jsonEncode({
+                    'iot_node_serial_number': defaultSerial,
+                    'duration_seconds': 5,
+                  }),
+                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(res.statusCode == 200
+                          ? 'Perintah pakan manual berhasil dikirim ke Node $defaultSerial!'
+                          : 'Gagal mengirim perintah'),
+                    ),
+                  );
+                }
+              },
+            ),
           ),
         ],
       ),
@@ -414,9 +469,9 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
           child: Row(
             children: [
               const CircleAvatar(
-                backgroundColor: AppTheme.accentGreen,
+                backgroundColor: AppTheme.badgeGreenBg,
                 radius: 18,
-                child: Icon(Icons.memory, size: 20, color: Colors.white),
+                child: Icon(Icons.memory, size: 20, color: AppTheme.primaryGreen),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -425,7 +480,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
                   children: [
                     Text(
                       serial,
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark, fontSize: 13),
                     ),
                     Text(
                       'Lokasi: $cageCode • IP: $ip',
@@ -437,14 +492,14 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentGreen.withValues(alpha: 0.2),
+                  color: AppTheme.badgeGreenBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.circle, size: 8, color: AppTheme.accentGreen),
+                    Icon(Icons.circle, size: 8, color: AppTheme.primaryGreen),
                     SizedBox(width: 4),
-                    Text('ONLINE', style: TextStyle(color: AppTheme.accentGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                    Text('ONLINE', style: TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),

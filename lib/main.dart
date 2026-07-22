@@ -23,7 +23,7 @@ class LobsenseMobileApp extends StatelessWidget {
     return MaterialApp(
       title: 'Lobsense Mobile',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           if (auth.isAuthenticated) {
