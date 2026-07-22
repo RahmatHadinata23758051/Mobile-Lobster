@@ -176,6 +176,15 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
                 ),
                 const SizedBox(height: 12),
                 _buildHardwareControlCard(),
+                const SizedBox(height: 24),
+
+                // Daftar Perangkat IoT Node Section
+                const Text(
+                  'Daftar Perangkat IoT (Active Nodes)',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
+                ),
+                const SizedBox(height: 12),
+                _buildDeviceListSection(),
               ],
             ),
           ),
@@ -374,6 +383,75 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDeviceListSection() {
+    final List nodes = _dashboardData?['nodes'] ?? [
+      {'serial_number': 'DEMO-NODE-001', 'ip_address': '192.168.1.101', 'cage': {'cage_code': 'CAGE-01'}},
+      {'serial_number': 'LOBSTER-ESP32-001', 'ip_address': '192.168.1.102', 'cage': {'cage_code': 'CAGE-02'}},
+      {'serial_number': 'LOBSTER-ESP32-002', 'ip_address': '192.168.1.103', 'cage': {'cage_code': 'CAGE-03'}},
+    ];
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: nodes.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, idx) {
+        final node = nodes[idx];
+        final serial = node['serial_number'] ?? 'NODE-001';
+        final ip = node['ip_address'] ?? '192.168.1.x';
+        final cageCode = node['cage']?['cage_code'] ?? 'Keramba Utama';
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppTheme.cardBg,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.borderCard),
+          ),
+          child: Row(
+            children: [
+              const CircleAvatar(
+                backgroundColor: AppTheme.accentGreen,
+                radius: 18,
+                child: Icon(Icons.memory, size: 20, color: Colors.white),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      serial,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                    ),
+                    Text(
+                      'Lokasi: $cageCode • IP: $ip',
+                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentGreen.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.circle, size: 8, color: AppTheme.accentGreen),
+                    SizedBox(width: 4),
+                    Text('ONLINE', style: TextStyle(color: AppTheme.accentGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
