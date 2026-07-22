@@ -137,11 +137,34 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
         centerTitle: false,
         title: Row(
           children: [
-            const AppLogo(size: 28, showText: false),
+            const AppLogo(size: 34, showText: false),
             const SizedBox(width: 10),
-            Text(
-              _dashboardData?['summary_stats']?['app_name']?.toString() ?? 'Lobsense Mobile',
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _dashboardData?['summary_stats']?['app_name']?.toString().toUpperCase() ?? 'LOBSENSE',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A),
+                    height: 1.1,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'LOBSTER SENSING SYSTEM',
+                  style: TextStyle(
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryGreen,
+                    height: 1.1,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
