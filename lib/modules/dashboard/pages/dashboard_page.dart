@@ -108,6 +108,14 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     });
   }
 
+  String _formatSensorVal(dynamic val, [String unit = '', int decimals = 2]) {
+    if (val == null) return '--';
+    final num? n = num.tryParse(val.toString());
+    if (n == null) return '--';
+    final formatted = decimals == 0 ? n.toStringAsFixed(0) : n.toStringAsFixed(decimals);
+    return unit.isNotEmpty ? '$formatted $unit' : formatted;
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -295,8 +303,10 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
       location = 'Bojongsoang';
     }
     final condition = stats['weather_condition'] ?? 'Cerah';
-    final temp = stats['weather_temp_c'] ?? 28;
-    final totalNodes = stats['total_active_nodes'] ?? 5;
+    final temp = stats['weather_temp_c'];
+    final totalNodes = stats['total_active_nodes'] ?? 0;
+
+    final tempStr = temp != null ? '${num.tryParse(temp.toString())?.toStringAsFixed(0) ?? "--"}°C' : '--°C';
 
     return Container(
       width: double.infinity,
@@ -355,7 +365,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Cuaca: $condition (${temp.toStringAsFixed(0)}°C)',
+            'Cuaca: $condition ($tempStr)',
             style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
           ),
         ],
@@ -364,13 +374,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
   }
 
   Widget _buildNodeSwitcherCard() {
-    final List nodes = _dashboardData?['nodes'] ?? [
-      {'serial_number': 'DEMO-NODE-001', 'cage': {'cage_code': 'CAGE-A01'}},
-      {'serial_number': 'AQ-01', 'cage': {'cage_code': 'CAGE-A01'}},
-      {'serial_number': 'LOBSTER-ESP32-001', 'cage': {'cage_code': 'CAGE-A01'}},
-      {'serial_number': 'LOBSTER-ESP32-002', 'cage': {'cage_code': 'CAGE-A02'}},
-      {'serial_number': 'LOBSTER-ESP32-003', 'cage': {'cage_code': 'CAGE-A03'}},
-    ];
+    final List nodes = _dashboardData?['nodes'] ?? [];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -421,7 +425,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
               prefixIcon: Icon(Icons.memory_outlined, color: AppTheme.primaryGreen, size: 20),
             ),
             items: nodes.map<DropdownMenuItem<String>>((node) {
-              final serial = node['serial_number']?.toString() ?? 'NODE-001';
+              final serial = node['serial_number']?.toString() ?? 'NODE';
               final cage = node['cage']?['cage_code']?.toString() ?? 'Keramba';
               return DropdownMenuItem<String>(
                 value: serial,
@@ -441,10 +445,11 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
 
   Widget _buildSensorGrid() {
     final activeTelemetry = _activeNodeTelemetry ?? _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
-    final temp = (activeTelemetry['temperature'] ?? activeTelemetry['ambient_temperature'] ?? activeTelemetry['water_temperature'] ?? 26.68).toDouble();
-    final ph = (activeTelemetry['ph'] ?? 7.3).toDouble();
-    final doVal = (activeTelemetry['dissolved_oxygen'] ?? 6.46).toDouble();
-    final tds = (activeTelemetry['tds'] ?? 426.15).toDouble();
+
+    final tempVal = activeTelemetry['temperature'] ?? activeTelemetry['water_temperature'] ?? activeTelemetry['ambient_temperature'];
+    final phVal = activeTelemetry['ph'];
+    final doVal = activeTelemetry['dissolved_oxygen'];
+    final tdsVal = activeTelemetry['tds'];
 
     return GridView.count(
       crossAxisCount: 2,
@@ -454,15 +459,15 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
       mainAxisSpacing: 12,
       childAspectRatio: 1.25,
       children: [
-        _sensorCard('Suhu Air', '${temp.toStringAsFixed(2)} °C', Icons.thermostat_outlined, AppTheme.primaryGreen),
-        _sensorCard('pH Air', ph.toStringAsFixed(1), Icons.water_drop_outlined, AppTheme.primaryGreen),
-        _sensorCard('Oksigen (DO)', '${doVal.toStringAsFixed(2)} mg/L', Icons.air_outlined, AppTheme.primaryGreen),
-        _sensorCard('TDS Air', '${tds.toStringAsFixed(2)} ppm', Icons.grid_on_outlined, AppTheme.primaryGreen),
+        _sensorCard('Suhu Air', _formatSensorVal(tempVal, '°C', 2), Icons.thermostat_outlined, AppTheme.primaryGreen, tempVal != null),
+        _sensorCard('pH Air', _formatSensorVal(phVal, '', 1), Icons.water_drop_outlined, AppTheme.primaryGreen, phVal != null),
+        _sensorCard('Oksigen (DO)', _formatSensorVal(doVal, 'mg/L', 2), Icons.air_outlined, AppTheme.primaryGreen, doVal != null),
+        _sensorCard('TDS Air', _formatSensorVal(tdsVal, 'ppm', 2), Icons.grid_on_outlined, AppTheme.primaryGreen, tdsVal != null),
       ],
     );
   }
 
-  Widget _sensorCard(String label, String value, IconData icon, Color color) {
+  Widget _sensorCard(String label, String value, IconData icon, Color color, bool hasData) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -486,20 +491,35 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+            style: TextStyle(
+              fontSize: value == '--' ? 22 : 20,
+              fontWeight: FontWeight.w800,
+              color: hasData ? AppTheme.textDark : AppTheme.textMuted,
+            ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: AppTheme.badgeGreenBg,
+              color: hasData ? AppTheme.badgeGreenBg : Colors.grey.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.arrow_upward, size: 10, color: AppTheme.primaryGreen),
-                SizedBox(width: 4),
-                Text('Normal', style: TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                Icon(
+                  hasData ? Icons.arrow_upward : Icons.remove,
+                  size: 10,
+                  color: hasData ? AppTheme.primaryGreen : AppTheme.textMuted,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  hasData ? 'Normal' : '--',
+                  style: TextStyle(
+                    color: hasData ? AppTheme.primaryGreen : AppTheme.textMuted,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),
@@ -509,11 +529,11 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
   }
 
   Widget _buildDeviceListSection() {
-    final List nodes = _dashboardData?['nodes'] ?? [
-      {'serial_number': 'DEMO-NODE-001', 'ip_address': '192.168.1.101', 'cage': {'cage_code': 'CAGE-01'}},
-      {'serial_number': 'LOBSTER-ESP32-001', 'ip_address': '192.168.1.102', 'cage': {'cage_code': 'CAGE-02'}},
-      {'serial_number': 'LOBSTER-ESP32-002', 'ip_address': '192.168.1.103', 'cage': {'cage_code': 'CAGE-03'}},
-    ];
+    final List nodes = _dashboardData?['nodes'] ?? [];
+
+    if (nodes.isEmpty) {
+      return const Text('Tidak ada perangkat terdaftar.', style: TextStyle(color: AppTheme.textMuted, fontSize: 12));
+    }
 
     return ListView.separated(
       shrinkWrap: true,
@@ -522,9 +542,9 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, idx) {
         final node = nodes[idx];
-        final serial = node['serial_number'] ?? 'NODE-001';
+        final serial = node['serial_number'] ?? 'NODE';
         final ip = node['ip_address'] ?? '192.168.1.x';
-        final cageCode = node['cage']?['cage_code'] ?? 'Keramba Utama';
+        final cageCode = node['cage']?['cage_code'] ?? 'Keramba';
         final isSelected = serial == _selectedNodeSerial;
 
         return InkWell(
@@ -587,14 +607,15 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
 
   void _showAllSensorsModal(BuildContext context) {
     final activeTelemetry = _activeNodeTelemetry ?? _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
-    final temp = (activeTelemetry['temperature'] ?? activeTelemetry['ambient_temperature'] ?? activeTelemetry['water_temperature'] ?? 26.68).toDouble();
-    final ph = (activeTelemetry['ph'] ?? 7.30).toDouble();
-    final doVal = (activeTelemetry['dissolved_oxygen'] ?? 6.46).toDouble();
-    final tds = (activeTelemetry['tds'] ?? 426.15).toDouble();
-    final salinity = (activeTelemetry['salinity'] ?? 32.50).toDouble();
-    final turbidity = (activeTelemetry['turbidity'] ?? 12.40).toDouble();
-    final waterLevel = (activeTelemetry['water_level'] ?? 120.0).toDouble();
-    final orp = (activeTelemetry['orp'] ?? 310.0).toDouble();
+
+    final tempVal = activeTelemetry['temperature'] ?? activeTelemetry['water_temperature'] ?? activeTelemetry['ambient_temperature'];
+    final phVal = activeTelemetry['ph'];
+    final doVal = activeTelemetry['dissolved_oxygen'];
+    final tdsVal = activeTelemetry['tds'];
+    final salinityVal = activeTelemetry['salinity'];
+    final turbidityVal = activeTelemetry['turbidity'];
+    final waterLevelVal = activeTelemetry['water_level'];
+    final orpVal = activeTelemetry['orp'];
 
     showModalBottomSheet(
       context: context,
@@ -651,14 +672,14 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
               Expanded(
                 child: ListView(
                   children: [
-                    _sensorDetailTile('Suhu Air', '${temp.toStringAsFixed(2)} °C', 'Ideal: 25.0 - 30.0 °C', Icons.thermostat_outlined),
-                    _sensorDetailTile('pH Air', ph.toStringAsFixed(2), 'Ideal: 7.0 - 8.5', Icons.water_drop_outlined),
-                    _sensorDetailTile('Oksigen Terlarut (DO)', '${doVal.toStringAsFixed(2)} mg/L', 'Ideal: > 4.0 mg/L', Icons.air_outlined),
-                    _sensorDetailTile('TDS Air (Salinitas)', '${tds.toStringAsFixed(2)} ppm', 'Ideal: 300 - 600 ppm', Icons.grid_on_outlined),
-                    _sensorDetailTile('Salinitas Air', '${salinity.toStringAsFixed(2)} ppt', 'Ideal: 28.0 - 35.0 ppt', Icons.waves_outlined),
-                    _sensorDetailTile('Turbiditas / Kekeruhan', '${turbidity.toStringAsFixed(2)} NTU', 'Ideal: < 25.0 NTU', Icons.blur_on_outlined),
-                    _sensorDetailTile('Ketinggian Air', '${waterLevel.toStringAsFixed(0)} cm', 'Ideal: 100 - 150 cm', Icons.height_outlined),
-                    _sensorDetailTile('Potensial Redoks (ORP)', '${orp.toStringAsFixed(0)} mV', 'Ideal: 250 - 400 mV', Icons.bolt_outlined),
+                    _sensorDetailTile('Suhu Air', _formatSensorVal(tempVal, '°C', 2), 'Ideal: 25.0 - 30.0 °C', Icons.thermostat_outlined, tempVal != null),
+                    _sensorDetailTile('pH Air', _formatSensorVal(phVal, '', 2), 'Ideal: 7.0 - 8.5', Icons.water_drop_outlined, phVal != null),
+                    _sensorDetailTile('Oksigen Terlarut (DO)', _formatSensorVal(doVal, 'mg/L', 2), 'Ideal: > 4.0 mg/L', Icons.air_outlined, doVal != null),
+                    _sensorDetailTile('TDS Air (Salinitas)', _formatSensorVal(tdsVal, 'ppm', 2), 'Ideal: 300 - 600 ppm', Icons.grid_on_outlined, tdsVal != null),
+                    _sensorDetailTile('Salinitas Air', _formatSensorVal(salinityVal, 'ppt', 2), 'Ideal: 28.0 - 35.0 ppt', Icons.waves_outlined, salinityVal != null),
+                    _sensorDetailTile('Turbiditas / Kekeruhan', _formatSensorVal(turbidityVal, 'NTU', 2), 'Ideal: < 25.0 NTU', Icons.blur_on_outlined, turbidityVal != null),
+                    _sensorDetailTile('Ketinggian Air', _formatSensorVal(waterLevelVal, 'cm', 0), 'Ideal: 100 - 150 cm', Icons.height_outlined, waterLevelVal != null),
+                    _sensorDetailTile('Potensial Redoks (ORP)', _formatSensorVal(orpVal, 'mV', 0), 'Ideal: 250 - 400 mV', Icons.bolt_outlined, orpVal != null),
                   ],
                 ),
               ),
@@ -669,7 +690,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     );
   }
 
-  Widget _sensorDetailTile(String label, String value, String idealRange, IconData icon) {
+  Widget _sensorDetailTile(String label, String value, String idealRange, IconData icon, bool hasData) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -709,16 +730,27 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
             children: [
               Text(
                 value,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: hasData ? AppTheme.textDark : AppTheme.textMuted,
+                ),
               ),
               const SizedBox(height: 2),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppTheme.badgeGreenBg,
+                  color: hasData ? AppTheme.badgeGreenBg : Colors.grey.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text('Normal', style: TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                child: Text(
+                  hasData ? 'Normal' : '--',
+                  style: TextStyle(
+                    color: hasData ? AppTheme.primaryGreen : AppTheme.textMuted,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
