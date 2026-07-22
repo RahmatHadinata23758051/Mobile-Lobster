@@ -56,7 +56,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
             _dashboardData = body['data'];
             final defaultSerial = body['data']['active_node_telemetry']?['serial_number'] ?? 'DEMO-NODE-001';
             _selectedNodeSerial = _selectedNodeSerial ?? defaultSerial;
-            _activeNodeTelemetry = body['data']['active_node_telemetry']?['telemetry'];
+            _activeNodeTelemetry ??= body['data']['active_node_telemetry']?['telemetry'] ?? {};
             _isLoading = false;
           });
           return;
@@ -79,6 +79,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     setState(() {
       _isLoadingTelemetry = true;
       _selectedNodeSerial = serialNumber;
+      _activeNodeTelemetry = null; // Clear previous node telemetry immediately to prevent fallback leaks
     });
 
     try {
@@ -95,7 +96,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
         final body = jsonDecode(response.body);
         if (body['status'] == 'success') {
           setState(() {
-            _activeNodeTelemetry = body['data']['telemetry'];
+            _activeNodeTelemetry = body['data']['telemetry'] ?? {};
             _isLoadingTelemetry = false;
           });
           return;
@@ -104,6 +105,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     } catch (_) {}
 
     setState(() {
+      _activeNodeTelemetry = {};
       _isLoadingTelemetry = false;
     });
   }
@@ -429,7 +431,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
               final cage = node['cage']?['cage_code']?.toString() ?? 'Keramba';
               return DropdownMenuItem<String>(
                 value: serial,
-                child: Text('$serial ($cage)'),
+                child: Text('$serial ($cage)', overflow: TextOverflow.ellipsis),
               );
             }).toList(),
             onChanged: (newSerial) {
@@ -444,7 +446,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
   }
 
   Widget _buildSensorGrid() {
-    final activeTelemetry = _activeNodeTelemetry ?? _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
+    final activeTelemetry = _activeNodeTelemetry ?? {};
 
     final tempVal = activeTelemetry['temperature'] ?? activeTelemetry['water_temperature'] ?? activeTelemetry['ambient_temperature'];
     final phVal = activeTelemetry['ph'];
@@ -606,7 +608,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
   }
 
   void _showAllSensorsModal(BuildContext context) {
-    final activeTelemetry = _activeNodeTelemetry ?? _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
+    final activeTelemetry = _activeNodeTelemetry ?? {};
 
     final tempVal = activeTelemetry['temperature'] ?? activeTelemetry['water_temperature'] ?? activeTelemetry['ambient_temperature'];
     final phVal = activeTelemetry['ph'];
@@ -647,18 +649,22 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Detail Kualitas Air (${_selectedNodeSerial ?? "Node"})',
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.textDark),
-                      ),
-                      const Text(
-                        'Ringkasan 8 parameter indikator tambak lobster',
-                        style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Detail Kualitas Air (${_selectedNodeSerial ?? "Node"})',
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Text(
+                          'Ringkasan 8 parameter indikator tambak lobster',
+                          style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, color: AppTheme.textMuted),
