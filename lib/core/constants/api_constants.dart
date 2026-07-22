@@ -1,6 +1,6 @@
 class ApiConstants {
-  // Production Cloud VPS URL
-  static const String baseUrl = 'http://103.67.78.91/api/v2';
+  // Production SSL Domain URL
+  static const String baseUrl = 'https://app.lobsens-unpad.web.id/api/v2';
   
   // Auth Endpoints
   static const String login = '$baseUrl/auth/login';
