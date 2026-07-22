@@ -8,6 +8,9 @@ import '../../../core/services/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/pages/login_page.dart';
 
+import 'control_page.dart';
+import 'profile_page.dart';
+
 class MobileDashboardPage extends StatefulWidget {
   const MobileDashboardPage({super.key});
 
@@ -71,6 +74,12 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     final auth = Provider.of<AuthProvider>(context);
     final user = auth.user;
 
+    final List<Widget> pages = [
+      _buildDashboardView(user),
+      const MobileControlPage(),
+      const MobileProfilePage(),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Row(
@@ -97,60 +106,10 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.accentCyan))
-          : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(_error!, style: const TextStyle(color: AppTheme.dangerRed)),
-                      const SizedBox(height: 12),
-                      ElevatedButton(onPressed: _fetchSummary, child: const Text('Coba Lagi')),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _fetchSummary,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16.0),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 480),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // User Welcome Header
-                            _buildUserHeader(user),
-                            const SizedBox(height: 16),
-
-                            // Weather & Node Summary Stats Card
-                            _buildSummaryHeaderCard(),
-                            const SizedBox(height: 20),
-
-                            // Aggregate Sensor Readings Grid
-                            const Text(
-                              'Kualitas Air & Sensor Agregat',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildSensorGrid(),
-                            const SizedBox(height: 24),
-
-                            // Hardware Controls & Feeding Automation
-                            const Text(
-                              'Kontrol & Otomatisasi Pakan',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildHardwareControlCard(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+      body: IndexedStack(
+        index: _selectedNavIndex,
+        children: pages,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedNavIndex,
         backgroundColor: AppTheme.cardBg,
@@ -162,6 +121,65 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
           BottomNavigationBarItem(icon: Icon(Icons.tune), label: 'Kontrol'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDashboardView(UserModel? user) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: AppTheme.accentCyan));
+    }
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_error!, style: const TextStyle(color: AppTheme.dangerRed)),
+            const SizedBox(height: 12),
+            ElevatedButton(onPressed: _fetchSummary, child: const Text('Coba Lagi')),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _fetchSummary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // User Welcome Header
+                _buildUserHeader(user),
+                const SizedBox(height: 16),
+
+                // Weather & Node Summary Stats Card
+                _buildSummaryHeaderCard(),
+                const SizedBox(height: 20),
+
+                // Aggregate Sensor Readings Grid
+                const Text(
+                  'Kualitas Air & Sensor Agregat',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
+                ),
+                const SizedBox(height: 12),
+                _buildSensorGrid(),
+                const SizedBox(height: 24),
+
+                // Hardware Controls & Feeding Automation
+                const Text(
+                  'Kontrol & Otomatisasi Pakan',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
+                ),
+                const SizedBox(height: 12),
+                _buildHardwareControlCard(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
