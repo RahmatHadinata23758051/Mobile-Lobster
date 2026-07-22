@@ -234,7 +234,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
 
   Widget _buildLocationWeatherBanner() {
     final stats = _dashboardData?['summary_stats'] ?? {};
-    final location = stats['weather_location'] ?? 'Lombok Barat';
+    final location = stats['weather_location'] ?? 'Bojongsoang';
     final condition = stats['weather_condition'] ?? 'Cerah';
     final temp = stats['weather_temp_c'] ?? 28;
     final totalNodes = stats['total_active_nodes'] ?? 5;
