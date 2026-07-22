@@ -115,34 +115,39 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // User Welcome Header
-                        _buildUserHeader(user),
-                        const SizedBox(height: 16),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 480),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // User Welcome Header
+                            _buildUserHeader(user),
+                            const SizedBox(height: 16),
 
-                        // Weather & Node Summary Stats Card
-                        _buildSummaryHeaderCard(),
-                        const SizedBox(height: 20),
+                            // Weather & Node Summary Stats Card
+                            _buildSummaryHeaderCard(),
+                            const SizedBox(height: 20),
 
-                        // Aggregate Sensor Readings Grid
-                        const Text(
-                          'Kualitas Air & Sensor Agregat',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
+                            // Aggregate Sensor Readings Grid
+                            const Text(
+                              'Kualitas Air & Sensor Agregat',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSensorGrid(),
+                            const SizedBox(height: 24),
+
+                            // Hardware Controls & Feeding Automation
+                            const Text(
+                              'Kontrol & Otomatisasi Pakan',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildHardwareControlCard(),
+                          ],
                         ),
-                        const SizedBox(height: 12),
-                        _buildSensorGrid(),
-                        const SizedBox(height: 24),
-
-                        // Hardware Controls & Feeding Automation
-                        const Text(
-                          'Kontrol & Otomatisasi Pakan',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textWhite),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildHardwareControlCard(),
-                      ],
+                      ),
                     ),
                   ),
                 ),
