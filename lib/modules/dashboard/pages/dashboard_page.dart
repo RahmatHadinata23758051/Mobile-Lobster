@@ -135,13 +135,13 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
         backgroundColor: AppTheme.cardBg,
         elevation: 0,
         centerTitle: false,
-        title: const Row(
+        title: Row(
           children: [
-            AppLogo(size: 24, showText: false),
-            SizedBox(width: 10),
+            const AppLogo(size: 28, showText: false),
+            const SizedBox(width: 10),
             Text(
-              'Lobsense Mobile',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+              _dashboardData?['summary_stats']?['app_name']?.toString() ?? 'Lobsense Mobile',
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textDark),
             ),
           ],
         ),

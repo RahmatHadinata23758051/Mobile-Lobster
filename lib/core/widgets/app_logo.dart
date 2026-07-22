@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-/// Modular App Logo Widget
-/// Allows easy customization and replacement when client provides custom logo asset/image.
+/// Modular App Logo Widget using the official Lobsense Circular Logo
 class AppLogo extends StatelessWidget {
   final double size;
-  final String? assetPath;
+  final String assetPath;
   final bool showText;
+  final String titleText;
   final double fontSize;
 
   const AppLogo({
     super.key,
     this.size = 56.0,
-    this.assetPath, // Provide asset image path here when client logo is ready (e.g. 'assets/images/logo.png')
+    this.assetPath = 'assets/images/lobsense_logo.png',
     this.showText = true,
+    this.titleText = 'Lobsense Mobile',
     this.fontSize = 22.0,
   });
 
@@ -22,15 +23,12 @@ class AppLogo extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (assetPath != null)
-          Image.asset(
-            assetPath!,
-            width: size,
-            height: size,
-            fit: BoxFit.contain,
-          )
-        else
-          Container(
+        Image.asset(
+          assetPath,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => Container(
             width: size,
             height: size,
             decoration: const BoxDecoration(
@@ -45,10 +43,11 @@ class AppLogo extends StatelessWidget {
               ),
             ),
           ),
+        ),
         if (showText) ...[
           const SizedBox(height: 12),
           Text(
-            'Lobsense Mobile',
+            titleText,
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
