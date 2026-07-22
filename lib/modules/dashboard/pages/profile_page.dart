@@ -133,9 +133,20 @@ class InfoRow extends StatelessWidget {
       children: [
         Icon(icon, size: 20, color: AppTheme.primaryGreen),
         const SizedBox(width: 12),
-        Text(label, style: const TextStyle(color: AppTheme.textDark, fontSize: 13, fontWeight: FontWeight.w500)),
-        const Spacer(),
-        Text(value, style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+        Text(
+          label,
+          style: const TextStyle(color: AppTheme.textDark, fontSize: 13, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+          ),
+        ),
         const SizedBox(width: 6),
         const Icon(Icons.chevron_right, size: 16, color: AppTheme.textMuted),
       ],
