@@ -19,8 +19,11 @@ class MobileDashboardPage extends StatefulWidget {
 
 class _MobileDashboardPageState extends State<MobileDashboardPage> {
   bool _isLoading = true;
+  bool _isLoadingTelemetry = false;
   String? _error;
   Map<String, dynamic>? _dashboardData;
+  String? _selectedNodeSerial;
+  Map<String, dynamic>? _activeNodeTelemetry;
   int _selectedNavIndex = 0;
 
   @override
@@ -51,6 +54,9 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
         if (body['status'] == 'success') {
           setState(() {
             _dashboardData = body['data'];
+            final defaultSerial = body['data']['active_node_telemetry']?['serial_number'] ?? 'DEMO-NODE-001';
+            _selectedNodeSerial = _selectedNodeSerial ?? defaultSerial;
+            _activeNodeTelemetry = body['data']['active_node_telemetry']?['telemetry'];
             _isLoading = false;
           });
           return;
@@ -66,6 +72,40 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _fetchNodeTelemetry(String serialNumber) async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    setState(() {
+      _isLoadingTelemetry = true;
+      _selectedNodeSerial = serialNumber;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.mobileTelemetry}/$serialNumber'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ${auth.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['status'] == 'success') {
+          setState(() {
+            _activeNodeTelemetry = body['data']['telemetry'];
+            _isLoadingTelemetry = false;
+          });
+          return;
+        }
+      }
+    } catch (_) {}
+
+    setState(() {
+      _isLoadingTelemetry = false;
+    });
   }
 
   @override
@@ -189,15 +229,31 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
               children: [
                 // Banner Lokasi Tambak & Cuaca (Reference Green Card)
                 _buildLocationWeatherBanner(),
+                const SizedBox(height: 16),
+
+                // IoT Node / Edge Switcher Selector Card
+                _buildNodeSwitcherCard(),
                 const SizedBox(height: 20),
 
                 // Kualitas Air & Sensor Grid Header
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Kualitas Air & Sensor',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                    Row(
+                      children: [
+                        const Text(
+                          'Kualitas Air & Sensor',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                        ),
+                        if (_isLoadingTelemetry) ...[
+                          const SizedBox(width: 8),
+                          const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryGreen),
+                          ),
+                        ],
+                      ],
                     ),
                     InkWell(
                       onTap: () => _showAllSensorsModal(context),
@@ -307,9 +363,85 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     );
   }
 
+  Widget _buildNodeSwitcherCard() {
+    final List nodes = _dashboardData?['nodes'] ?? [
+      {'serial_number': 'DEMO-NODE-001', 'cage': {'cage_code': 'CAGE-A01'}},
+      {'serial_number': 'AQ-01', 'cage': {'cage_code': 'CAGE-A01'}},
+      {'serial_number': 'LOBSTER-ESP32-001', 'cage': {'cage_code': 'CAGE-A01'}},
+      {'serial_number': 'LOBSTER-ESP32-002', 'cage': {'cage_code': 'CAGE-A02'}},
+      {'serial_number': 'LOBSTER-ESP32-003', 'cage': {'cage_code': 'CAGE-A03'}},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderCard),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.alt_route_outlined, size: 18, color: AppTheme.primaryGreen),
+                  SizedBox(width: 8),
+                  Text(
+                    'Pilih Perangkat IoT Node',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.badgeGreenBg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.circle, size: 6, color: AppTheme.primaryGreen),
+                    SizedBox(width: 4),
+                    Text('ACTIVE', style: TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            initialValue: _selectedNodeSerial,
+            dropdownColor: AppTheme.cardBg,
+            style: const TextStyle(color: AppTheme.textDark, fontSize: 14, fontWeight: FontWeight.w600),
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              prefixIcon: Icon(Icons.memory_outlined, color: AppTheme.primaryGreen, size: 20),
+            ),
+            items: nodes.map<DropdownMenuItem<String>>((node) {
+              final serial = node['serial_number']?.toString() ?? 'NODE-001';
+              final cage = node['cage']?['cage_code']?.toString() ?? 'Keramba';
+              return DropdownMenuItem<String>(
+                value: serial,
+                child: Text('$serial ($cage)'),
+              );
+            }).toList(),
+            onChanged: (newSerial) {
+              if (newSerial != null && newSerial != _selectedNodeSerial) {
+                _fetchNodeTelemetry(newSerial);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSensorGrid() {
-    final activeTelemetry = _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
-    final temp = (activeTelemetry['temperature'] ?? 26.68).toDouble();
+    final activeTelemetry = _activeNodeTelemetry ?? _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
+    final temp = (activeTelemetry['temperature'] ?? activeTelemetry['ambient_temperature'] ?? activeTelemetry['water_temperature'] ?? 26.68).toDouble();
     final ph = (activeTelemetry['ph'] ?? 7.3).toDouble();
     final doVal = (activeTelemetry['dissolved_oxygen'] ?? 6.46).toDouble();
     final tds = (activeTelemetry['tds'] ?? 426.15).toDouble();
@@ -376,8 +508,6 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
     );
   }
 
-
-
   Widget _buildDeviceListSection() {
     final List nodes = _dashboardData?['nodes'] ?? [
       {'serial_number': 'DEMO-NODE-001', 'ip_address': '192.168.1.101', 'cage': {'cage_code': 'CAGE-01'}},
@@ -395,52 +525,60 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
         final serial = node['serial_number'] ?? 'NODE-001';
         final ip = node['ip_address'] ?? '192.168.1.x';
         final cageCode = node['cage']?['cage_code'] ?? 'Keramba Utama';
+        final isSelected = serial == _selectedNodeSerial;
 
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppTheme.cardBg,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderCard),
-          ),
-          child: Row(
-            children: [
-              const CircleAvatar(
-                backgroundColor: AppTheme.badgeGreenBg,
-                radius: 18,
-                child: Icon(Icons.memory, size: 20, color: AppTheme.primaryGreen),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      serial,
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark, fontSize: 13),
-                    ),
-                    Text(
-                      'Lokasi: $cageCode • IP: $ip',
-                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                    ),
-                  ],
+        return InkWell(
+          onTap: () => _fetchNodeTelemetry(serial),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.badgeGreenBg.withValues(alpha: 0.5) : AppTheme.cardBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: isSelected ? AppTheme.primaryGreen : AppTheme.borderCard, width: isSelected ? 1.5 : 1),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: isSelected ? AppTheme.primaryGreen : AppTheme.badgeGreenBg,
+                  radius: 18,
+                  child: Icon(Icons.memory, size: 20, color: isSelected ? Colors.white : AppTheme.primaryGreen),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.badgeGreenBg,
-                  borderRadius: BorderRadius.circular(8),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        serial,
+                        style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? AppTheme.primaryGreen : AppTheme.textDark, fontSize: 13),
+                      ),
+                      Text(
+                        'Lokasi: $cageCode • IP: $ip',
+                        style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                      ),
+                    ],
+                  ),
                 ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.circle, size: 8, color: AppTheme.primaryGreen),
-                    SizedBox(width: 4),
-                    Text('ONLINE', style: TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ],
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.badgeGreenBg,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.circle, size: 8, color: AppTheme.primaryGreen),
+                      const SizedBox(width: 4),
+                      Text(
+                        isSelected ? 'SELECTED' : 'ONLINE',
+                        style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -448,8 +586,8 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
   }
 
   void _showAllSensorsModal(BuildContext context) {
-    final activeTelemetry = _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
-    final temp = (activeTelemetry['temperature'] ?? 26.68).toDouble();
+    final activeTelemetry = _activeNodeTelemetry ?? _dashboardData?['active_node_telemetry']?['telemetry'] ?? {};
+    final temp = (activeTelemetry['temperature'] ?? activeTelemetry['ambient_temperature'] ?? activeTelemetry['water_temperature'] ?? 26.68).toDouble();
     final ph = (activeTelemetry['ph'] ?? 7.30).toDouble();
     final doVal = (activeTelemetry['dissolved_oxygen'] ?? 6.46).toDouble();
     final tds = (activeTelemetry['tds'] ?? 426.15).toDouble();
@@ -488,14 +626,14 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Detail Kualitas Air & Sensor',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                        'Detail Kualitas Air (${_selectedNodeSerial ?? "Node"})',
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                       ),
-                      Text(
+                      const Text(
                         'Ringkasan 8 parameter indikator tambak lobster',
                         style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
                       ),
