@@ -34,8 +34,8 @@ class _MobileControlPageState extends State<MobileControlPage> {
   int _selectedAeratorDurationMin = 30; // 15, 30, 45, 60
   int _overrideRemainingSeconds = 0;
   Timer? _countdownTimer;
-  double _currentDoValue = 6.46;
-  double _doMinThreshold = 5.00;
+  final double _currentDoValue = 6.46;
+  final double _doMinThreshold = 5.00;
 
   // Feeder States
   int _instantFeedDurationSec = 10; // 5, 10, 15, 20, 30
@@ -280,7 +280,7 @@ class _MobileControlPageState extends State<MobileControlPage> {
     return showDialog(
       context: context,
       builder: (dialogCtx) {
-        return StatefulWidgetBuilder(
+        return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: AppTheme.cardBg,
@@ -452,7 +452,7 @@ class _MobileControlPageState extends State<MobileControlPage> {
                     children: [
                       Text(
                         'Kontrol Perangkat IoT',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.extrabold, color: AppTheme.textDark),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                       ),
                       Text(
                         'Manajemen Aerator 24h & Pakan Otomatis',
@@ -576,7 +576,7 @@ class _MobileControlPageState extends State<MobileControlPage> {
                       : (isAuto ? 'AUTO (SENSOR DO)' : 'MANUAL OFF'),
                   style: TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.extrabold,
+                    fontWeight: FontWeight.bold,
                     color: isManualOn ? AppTheme.primaryGreen : (isAuto ? Colors.blue.shade800 : AppTheme.dangerRed),
                   ),
                 ),
@@ -609,7 +609,7 @@ class _MobileControlPageState extends State<MobileControlPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Kadar DO Saat Ini', style: TextStyle(fontSize: 10, color: AppTheme.textMuted)),
-                        Text('$_currentDoValue mg/L', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.extrabold, color: AppTheme.textDark)),
+                        Text('$_currentDoValue mg/L', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
                       ],
                     ),
                   ],
@@ -769,7 +769,7 @@ class _MobileControlPageState extends State<MobileControlPage> {
                     icon: _isSubmittingFeed
                         ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                         : const Icon(Icons.bolt, size: 18),
-                    label: Text('Beri Pakan Sekarang (${_instantFeedDurationSec} Detik)'),
+                    label: Text('Beri Pakan Sekarang ($_instantFeedDurationSec Detik)'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryGreen,
                       foregroundColor: Colors.white,
@@ -810,7 +810,7 @@ class _MobileControlPageState extends State<MobileControlPage> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _dailySchedules.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, idx) {
               final sch = _dailySchedules[idx];
               return Container(
@@ -837,7 +837,7 @@ class _MobileControlPageState extends State<MobileControlPage> {
                         children: [
                           Text(
                             sch['time'] ?? '08:00',
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.extrabold, color: AppTheme.textDark),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                           ),
                           Text(
                             'Durasi Motor: ${sch['duration_seconds']}s • ${sch['food_type']}',
@@ -918,7 +918,7 @@ class _MobileControlPageState extends State<MobileControlPage> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: filteredLogs.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (context, index) => const SizedBox(height: 8),
                     itemBuilder: (context, idx) {
                       final item = filteredLogs[idx];
                       final triggerType = item['trigger_type'] ?? 'AUTOMATIC_SCHEDULE';
@@ -1031,7 +1031,7 @@ class _MobileControlPageState extends State<MobileControlPage> {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 9, fontWeight: FontWeight.extrabold, color: fg),
+        style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: fg),
       ),
     );
   }
