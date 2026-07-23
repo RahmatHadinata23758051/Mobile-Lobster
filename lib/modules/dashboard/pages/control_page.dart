@@ -447,19 +447,22 @@ class _MobileControlPageState extends State<MobileControlPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Kontrol Perangkat IoT',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
-                      ),
-                      Text(
-                        'Manajemen Aerator 24h & Pakan Otomatis',
-                        style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
-                      ),
-                    ],
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Kontrol Perangkat IoT',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                        ),
+                        Text(
+                          'Manajemen Aerator 24h & Pakan Otomatis',
+                          style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
@@ -629,20 +632,23 @@ class _MobileControlPageState extends State<MobileControlPage> {
           // Timer duration selector chips
           const Text('Durasi Override Manual:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
           const SizedBox(height: 6),
-          Row(
-            children: [15, 30, 45, 60].map((mins) {
-              final isSel = _selectedAeratorDurationMin == mins;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  label: Text('$mins Menit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isSel ? Colors.white : AppTheme.textDark)),
-                  selected: isSel,
-                  selectedColor: AppTheme.primaryGreen,
-                  backgroundColor: AppTheme.lightBackground,
-                  onSelected: (_) => setState(() => _selectedAeratorDurationMin = mins),
-                ),
-              );
-            }).toList(),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [15, 30, 45, 60].map((mins) {
+                final isSel = _selectedAeratorDurationMin == mins;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text('$mins Menit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isSel ? Colors.white : AppTheme.textDark)),
+                    selected: isSel,
+                    selectedColor: AppTheme.primaryGreen,
+                    backgroundColor: AppTheme.lightBackground,
+                    onSelected: (_) => setState(() => _selectedAeratorDurationMin = mins),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
           const SizedBox(height: 14),
 
@@ -739,26 +745,33 @@ class _MobileControlPageState extends State<MobileControlPage> {
                   children: [
                     const Text('Durasi Dispenser:', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
                     const SizedBox(width: 8),
-                    Wrap(
-                      spacing: 6,
-                      children: [5, 10, 15, 20, 30].map((dur) {
-                        final isSel = _instantFeedDurationSec == dur;
-                        return InkWell(
-                          onTap: () => setState(() => _instantFeedDurationSec = dur),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isSel ? AppTheme.primaryGreen : AppTheme.cardBg,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: isSel ? AppTheme.primaryGreen : AppTheme.borderCard),
-                            ),
-                            child: Text(
-                              '${dur}s',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isSel ? Colors.white : AppTheme.textDark),
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [5, 10, 15, 20, 30].map((dur) {
+                            final isSel = _instantFeedDurationSec == dur;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: InkWell(
+                                onTap: () => setState(() => _instantFeedDurationSec = dur),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: isSel ? AppTheme.primaryGreen : AppTheme.cardBg,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: isSel ? AppTheme.primaryGreen : AppTheme.borderCard),
+                                  ),
+                                  child: Text(
+                                    '${dur}s',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isSel ? Colors.white : AppTheme.textDark),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
                   ],
                 ),
