@@ -13,4 +13,5 @@ class ApiConstants {
   static const String mobileFeedingSchedules = '$baseUrl/mobile/feeding/schedules';
   static const String mobileFeedingScheduleStore = '$baseUrl/mobile/feeding/schedule';
   static const String mobileFeedingInstantTrigger = '$baseUrl/mobile/feeding/trigger';
+  static const String mobileAeratorToggle = '$baseUrl/mobile/aerator/toggle';
 }
