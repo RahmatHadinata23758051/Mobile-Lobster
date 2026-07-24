@@ -10,25 +10,25 @@ Aplikasi seluler terhubung ke Backend melalui kelompok **Dedicated Mobile API (`
 
 ```mermaid
 flowchart TD
-    subgraph Mobile Client Application
-        HomeScreen[Dashboard Summary Screen]
-        TelemetryScreen[Telemetry Detail Screen]
-        ControlScreen[Control & Schedule Screen]
-        ActivationScreen[Device Activation Screen]
+    subgraph Mobile_App["Mobile Client Application"]
+        HomeScreen["Dashboard Summary Screen"]
+        TelemetryScreen["Telemetry Detail Screen"]
+        ControlScreen["Control & Schedule Screen"]
+        ActivationScreen["Device Activation Screen"]
     end
 
-    subgraph Dedicated Mobile API Layer
-        SummaryApi[GET /api/v2/mobile/summary]
-        TelemApi[GET /api/v2/mobile/telemetry/serial]
-        ControlApi[GET /api/v2/mobile/feeding/schedules]
-        AeratorApi[POST /api/v2/mobile/aerator/toggle]
-        TriggerApi[POST /api/v2/mobile/feeding/trigger]
-        ActivateApi[POST /api/v2/devices/activate]
+    subgraph Mobile_API["Dedicated Mobile API Layer"]
+        SummaryApi["GET /api/v2/mobile/summary"]
+        TelemApi["GET /api/v2/mobile/telemetry/serial"]
+        ControlApi["GET /api/v2/mobile/feeding/schedules"]
+        AeratorApi["POST /api/v2/mobile/aerator/toggle"]
+        TriggerApi["POST /api/v2/mobile/feeding/trigger"]
+        ActivateApi["POST /api/v2/devices/activate"]
     end
 
-    subgraph Backend Core & Relays
-        BackendService[Laravel Backend Service]
-        RelayHardware[Relai Feeder & Aerator Tambak]
+    subgraph Backend_Core["Backend Core & Relays"]
+        BackendService["Laravel Backend Service"]
+        RelayHardware["Relai Feeder & Aerator Tambak"]
     end
 
     HomeScreen --> SummaryApi
