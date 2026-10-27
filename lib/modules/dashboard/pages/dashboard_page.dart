@@ -485,7 +485,7 @@ class _MobileDashboardPageState extends State<MobileDashboardPage> {
       childAspectRatio: 1.25,
       children: [
         _sensorCard('Suhu Air', _formatSensorVal(tempVal, '°C', 2), Icons.thermostat_outlined, AppTheme.primaryGreen, tempVal != null),
-        _sensorCard('pH Air', _formatSensorVal(phVal, '', 1), Icons.water_drop_outlined, AppTheme.primaryGreen, phVal != null),
+        _sensorCard('pH Air', _formatSensorVal(phVal, '', 2), Icons.water_drop_outlined, AppTheme.primaryGreen, phVal != null),
         _sensorCard('Oksigen (DO)', _formatSensorVal(doVal, 'mg/L', 2), Icons.air_outlined, AppTheme.primaryGreen, doVal != null),
         _sensorCard('TDS Air', _formatSensorVal(tdsVal, 'ppm', 2), Icons.grid_on_outlined, AppTheme.primaryGreen, tdsVal != null),
       ],
